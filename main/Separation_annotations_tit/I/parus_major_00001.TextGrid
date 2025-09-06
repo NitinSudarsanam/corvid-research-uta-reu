@@ -1,0 +1,72 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 3.860997732426304 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Tit" 
+        xmin = 0 
+        xmax = 3.860997732426304 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.1456673248074674 
+            text = "Tit" 
+        intervals [2]:
+            xmin = 1.1456673248074674 
+            xmax = 2.345997917545573 
+            text = "" 
+        intervals [3]:
+            xmin = 2.345997917545573 
+            xmax = 2.839779398839175 
+            text = "Tit" 
+        intervals [4]:
+            xmin = 2.839779398839175 
+            xmax = 3.425894002651093 
+            text = "" 
+        intervals [5]:
+            xmin = 3.425894002651093 
+            xmax = 3.860997732426304 
+            text = "Tit" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Tits" 
+        xmin = 0 
+        xmax = 3.860997732426304 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.2380004473257833 
+            text = "" 
+        intervals [2]:
+            xmin = 1.2380004473257833 
+            xmax = 2.3259254996068086 
+            text = "2+Tits" 
+        intervals [3]:
+            xmin = 2.3259254996068086 
+            xmax = 3.860997732426304 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 3.860997732426304 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 3.860997732426304 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 3.860997732426304 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 3.860997732426304 
+            text = "" 

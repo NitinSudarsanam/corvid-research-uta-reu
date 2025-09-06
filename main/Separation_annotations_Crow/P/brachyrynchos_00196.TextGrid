@@ -1,0 +1,80 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 15.979 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 15.979 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.6588593495868686 
+            text = "" 
+        intervals [2]:
+            xmin = 0.6588593495868686 
+            xmax = 2.1305472311105262 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 2.1305472311105262 
+            xmax = 7.879895649412977 
+            text = "" 
+        intervals [4]:
+            xmin = 7.879895649412977 
+            xmax = 9.995691641255833 
+            text = "Crow" 
+        intervals [5]:
+            xmin = 9.995691641255833 
+            xmax = 15.979 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 15.979 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.1305472311105262 
+            text = "" 
+        intervals [2]:
+            xmin = 2.1305472311105262 
+            xmax = 3.6791404176069165 
+            text = "2+Crows" 
+        intervals [3]:
+            xmin = 3.6791404176069165 
+            xmax = 9.995691641255833 
+            text = "" 
+        intervals [4]:
+            xmin = 9.995691641255833 
+            xmax = 13.937267974969313 
+            text = "2+Crows" 
+        intervals [5]:
+            xmin = 13.937267974969313 
+            xmax = 15.979 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 15.979 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 15.979 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 15.979 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 15.979 
+            text = "" 

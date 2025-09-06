@@ -1,0 +1,118 @@
+---
+title: "Sequence_Analysis"
+author: "Parker Major"
+date: "2025-08-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set Up
+### Set path and load in required packages
+```{r}
+
+# Clear global environment
+rm(list = ls())
+
+# Set path
+path <- "~/Desktop/Sequence_Data"
+
+# Load in required packages
+packages <-  c("tidyverse")
+invisible(lapply(packages, library, character.only = TRUE))
+
+```
+
+```{r}
+
+# Load in data
+call_index_probs <- read.csv(file.path(path, "cluster_call_index_probabilities.csv"))
+
+data_0to5 <- call_index_probs %>% 
+  filter(Cluster %in% c("0", "1", "2", "3", "4", "5"))
+
+ggplot(data_0to5, mapping = aes(x = Call_Index, y = Probability)) +
+  coord_cartesian(xlim = c(1, 5), ylim = c(0, 1)) +
+  geom_col(fill = "royalblue2") +
+  facet_wrap(~ Cluster) +
+  labs(title = "Call Index Probabilities (Clusters 0 to 5)",
+       x = "Call Index",
+       y = "Probability") +
+  theme_classic()
+
+data_6to11 <- call_index_probs %>% 
+  filter(Cluster %in% c("6", "7", "8", "9", "10", "11"))
+
+ggplot(data_6to11, mapping = aes(x = Call_Index, y = Probability)) +
+  coord_cartesian(xlim = c(1, 5), ylim = c(0, 1)) +
+  geom_col(fill = "royalblue2") +
+  facet_wrap(~ Cluster) +
+  labs(title = "Call Index Probabilities (Clusters 6 to 11)",
+       x = "Call Index",
+       y = "Probability") +
+  theme_classic()
+
+data_12to17 <- call_index_probs %>% 
+  filter(Cluster %in% c("12", "13", "14", "15", "16", "17"))
+
+ggplot(data_12to17, mapping = aes(x = Call_Index, y = Probability)) +
+  coord_cartesian(xlim = c(1, 5), ylim = c(0, 1)) +
+  geom_col(fill = "royalblue2") +
+  facet_wrap(~ Cluster) +
+  labs(title = "Call Index Probabilities (Clusters 12 to 17)",
+       x = "Call Index",
+       y = "Probability") +
+  theme_classic()
+
+data_18to23 <- call_index_probs %>% 
+  filter(Cluster %in% c("18", "19", "20", "21", "22", "23"))
+
+ggplot(data_18to23, mapping = aes(x = Call_Index, y = Probability)) +
+  coord_cartesian(xlim = c(1, 5), ylim = c(0, 1)) +
+  geom_col(fill = "royalblue2") +
+  facet_wrap(~ Cluster) +
+  labs(title = "Call Index Probabilities (Clusters 18 to 23)",
+       x = "Call Index",
+       y = "Probability") +
+  theme_classic()
+
+data_24to26 <- call_index_probs %>% 
+  filter(Cluster %in% c("24", "25", "26"))
+
+ggplot(data_24to26, mapping = aes(x = Call_Index, y = Probability)) +
+  coord_cartesian(xlim = c(1, 5), ylim = c(0, 1)) +
+  geom_col(fill = "royalblue2") +
+  facet_wrap(~ Cluster) +
+  labs(title = "Call Index Probabilities (Clusters 24 to 26)",
+       x = "Call Index",
+       y = "Probability") +
+  theme_classic()
+
+```
+
+```{r}
+
+prob_1to5 <- call_index_probs %>% 
+  filter(Call_Index %in% 1:5) %>% 
+  group_by(Cluster) %>% 
+  summarise(Probability_1to5 = sum(Probability), .groups = "drop")
+
+prob_1to10 <- call_index_probs %>% 
+  filter(Call_Index %in% 1:10) %>% 
+  group_by(Cluster) %>% 
+  summarise(Probability_1to10 = sum(Probability), .groups = "drop")
+  
+prob_1to20 <- call_index_probs %>% 
+  filter(Call_Index %in% 1:20) %>% 
+  group_by(Cluster) %>% 
+  summarise(Probability_1to20 = sum(Probability), .groups = "drop")
+
+prob_summary <- prob_1to5 %>% 
+  left_join(prob_1to10, by = "Cluster") %>% 
+  left_join(prob_1to20, by = "Cluster")
+
+
+```
+

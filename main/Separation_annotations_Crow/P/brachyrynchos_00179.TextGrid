@@ -1,0 +1,92 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 19.465 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 19.465 
+        intervals: size = 8 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.9211430785532022 
+            text = "" 
+        intervals [2]:
+            xmin = 0.9211430785532022 
+            xmax = 2.521585070034251 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 2.521585070034251 
+            xmax = 8.704500104897768 
+            text = "" 
+        intervals [4]:
+            xmin = 8.704500104897768 
+            xmax = 9.805375375132513 
+            text = "Crow" 
+        intervals [5]:
+            xmin = 9.805375375132513 
+            xmax = 14.013362999415028 
+            text = "" 
+        intervals [6]:
+            xmin = 14.013362999415028 
+            xmax = 15.023892432603825 
+            text = "Crow" 
+        intervals [7]:
+            xmin = 15.023892432603825 
+            xmax = 18.82208926769275 
+            text = "" 
+        intervals [8]:
+            xmin = 18.82208926769275 
+            xmax = 19.465 
+            text = "Crow" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 19.465 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 15.023892432603825 
+            text = "" 
+        intervals [2]:
+            xmin = 15.023892432603825 
+            xmax = 17.25900433162732 
+            text = "2+Crows" 
+        intervals [3]:
+            xmin = 17.25900433162732 
+            xmax = 19.465 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 19.465 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 19.465 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 19.465 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 14.381733334666118 
+            text = "" 
+        intervals [2]:
+            xmin = 14.381733334666118 
+            xmax = 16.47248388609121 
+            text = "Other" 
+        intervals [3]:
+            xmin = 16.47248388609121 
+            xmax = 19.465 
+            text = "" 

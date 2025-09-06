@@ -1,0 +1,108 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 17.644 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 17.644 
+        intervals: size = 16 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.7045211481394056 
+            text = "Crow" 
+        intervals [2]:
+            xmin = 1.7045211481394056 
+            xmax = 3.8780555965378025 
+            text = "" 
+        intervals [3]:
+            xmin = 3.8780555965378025 
+            xmax = 5.3931188152901095 
+            text = "Crow" 
+        intervals [4]:
+            xmin = 5.3931188152901095 
+            xmax = 5.850533733804264 
+            text = "" 
+        intervals [5]:
+            xmin = 5.850533733804264 
+            xmax = 7.715050857716226 
+            text = "Crow" 
+        intervals [6]:
+            xmin = 7.715050857716226 
+            xmax = 8.63503521034499 
+            text = "" 
+        intervals [7]:
+            xmin = 8.63503521034499 
+            xmax = 9.494875913600534 
+            text = "Crow" 
+        intervals [8]:
+            xmin = 9.494875913600534 
+            xmax = 10.50797408630575 
+            text = "" 
+        intervals [9]:
+            xmin = 10.50797408630575 
+            xmax = 11.23140241089517 
+            text = "Crow" 
+        intervals [10]:
+            xmin = 11.23140241089517 
+            xmax = 12.193354963567204 
+            text = "" 
+        intervals [11]:
+            xmin = 12.193354963567204 
+            xmax = 14.546478986112236 
+            text = "Crow" 
+        intervals [12]:
+            xmin = 14.546478986112236 
+            xmax = 14.969226375443919 
+            text = "" 
+        intervals [13]:
+            xmin = 14.969226375443919 
+            xmax = 16.222188517318546 
+            text = "Crow" 
+        intervals [14]:
+            xmin = 16.222188517318546 
+            xmax = 16.996376507419942 
+            text = "" 
+        intervals [15]:
+            xmin = 16.996376507419942 
+            xmax = 17.25104360942698 
+            text = "Crow" 
+        intervals [16]:
+            xmin = 17.25104360942698 
+            xmax = 17.644 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 17.644 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 17.644 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 17.644 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 17.644 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 17.644 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 17.644 
+            text = "" 

@@ -1,0 +1,94 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 11.424988662131518 
+tiers? <exists> 
+size = 5 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Tit" 
+        xmin = 0 
+        xmax = 11.424988662131518 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.5611173193396186 
+            text = "" 
+        intervals [2]:
+            xmin = 2.5611173193396186 
+            xmax = 3.176436606303933 
+            text = "Tit" 
+        intervals [3]:
+            xmin = 3.176436606303933 
+            xmax = 5.175927788750589 
+            text = "" 
+        intervals [4]:
+            xmin = 5.175927788750589 
+            xmax = 5.5892627904509045 
+            text = "Tit" 
+        intervals [5]:
+            xmin = 5.5892627904509045 
+            xmax = 11.424988662131518 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Tits" 
+        xmin = 0 
+        xmax = 11.424988662131518 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 11.424988662131518 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 11.424988662131518 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 11.424988662131518 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Silence" 
+        xmin = 0 
+        xmax = 11.424988662131518 
+        intervals: size = 6 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.009863201690932754 
+            text = "" 
+        intervals [2]:
+            xmin = 0.009863201690932754 
+            xmax = 2.5537529729840647 
+            text = "Silence" 
+        intervals [3]:
+            xmin = 2.5537529729840647 
+            xmax = 3.1826851304624406 
+            text = "" 
+        intervals [4]:
+            xmin = 3.1826851304624406 
+            xmax = 5.1351909327833685 
+            text = "Silence" 
+        intervals [5]:
+            xmin = 5.1351909327833685 
+            xmax = 5.604543289110515 
+            text = "" 
+        intervals [6]:
+            xmin = 5.604543289110515 
+            xmax = 11.424988662131518 
+            text = "Silence" 
+    item [5]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 11.424988662131518 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 11.424988662131518 
+            text = "" 

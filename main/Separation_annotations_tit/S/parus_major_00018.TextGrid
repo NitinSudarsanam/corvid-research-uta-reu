@@ -1,0 +1,138 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 19.343990929705214 
+tiers? <exists> 
+size = 5 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Tit" 
+        xmin = 0 
+        xmax = 19.343990929705214 
+        intervals: size = 11 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.08027364657063898 
+            text = "" 
+        intervals [2]:
+            xmin = 0.08027364657063898 
+            xmax = 10.204427413340502 
+            text = "Tit" 
+        intervals [3]:
+            xmin = 10.204427413340502 
+            xmax = 10.522297233333276 
+            text = "" 
+        intervals [4]:
+            xmin = 10.522297233333276 
+            xmax = 11.325119610431928 
+            text = "Tit" 
+        intervals [5]:
+            xmin = 11.325119610431928 
+            xmax = 11.348758765314491 
+            text = "" 
+        intervals [6]:
+            xmin = 11.348758765314491 
+            xmax = 13.893444640002501 
+            text = "Tit" 
+        intervals [7]:
+            xmin = 13.893444640002501 
+            xmax = 13.90723439146949 
+            text = "" 
+        intervals [8]:
+            xmin = 13.90723439146949 
+            xmax = 14.924794240233203 
+            text = "Tit" 
+        intervals [9]:
+            xmin = 14.924794240233203 
+            xmax = 17.706155165169978 
+            text = "" 
+        intervals [10]:
+            xmin = 17.706155165169978 
+            xmax = 18.48493622415228 
+            text = "Tit" 
+        intervals [11]:
+            xmin = 18.48493622415228 
+            xmax = 19.343990929705214 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Tits" 
+        xmin = 0 
+        xmax = 19.343990929705214 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 14.924794240233203 
+            text = "" 
+        intervals [2]:
+            xmin = 14.924794240233203 
+            xmax = 17.706155165169978 
+            text = "2+Tits" 
+        intervals [3]:
+            xmin = 17.706155165169978 
+            xmax = 19.343990929705214 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 19.343990929705214 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 19.343990929705214 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Silence" 
+        xmin = 0 
+        xmax = 19.343990929705214 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 18.500829715151916 
+            text = "" 
+        intervals [2]:
+            xmin = 18.500829715151916 
+            xmax = 19.343184738132766 
+            text = "Silence" 
+        intervals [3]:
+            xmin = 19.343184738132766 
+            xmax = 19.343990929705214 
+            text = "" 
+    item [5]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 19.343990929705214 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 10.25609977324263 
+            text = "" 
+        intervals [2]:
+            xmin = 10.25609977324263 
+            xmax = 10.522297233333276 
+            text = "Other " 
+        intervals [3]:
+            xmin = 10.522297233333276 
+            xmax = 11.078569418320631 
+            text = "" 
+        intervals [4]:
+            xmin = 11.078569418320631 
+            xmax = 11.316971783315212 
+            text = "Other" 
+        intervals [5]:
+            xmin = 11.316971783315212 
+            xmax = 12.477196626288839 
+            text = "" 
+        intervals [6]:
+            xmin = 12.477196626288839 
+            xmax = 13.128829757274026 
+            text = "Other" 
+        intervals [7]:
+            xmin = 13.128829757274026 
+            xmax = 19.343990929705214 
+            text = "" 

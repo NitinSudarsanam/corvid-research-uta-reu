@@ -1,0 +1,741 @@
+---
+title: "Cluster_Acoustic_Analysis"
+author: "Parker Major"
+date: "2025-07-16"
+output: html_document
+---
+Author: Parker Major 
+
+Date: 07/16/2025, Revised: 08/08/2025
+
+Purpose: Analysis of 27 clusters using pre-defined acoustic features.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set Up 
+### Set up working environment and load in packages
+```{r, results="hide", message=FALSE, warning=FALSE}
+# Clear global environment
+rm(list = ls())
+
+# Set path
+path <- "~/Desktop/Cluster_Features"
+
+# Load in required packages 
+packages <- c("tidyverse", "reshape2", "caret", "randomForest", "effectsize", "pheatmap", "broom", "ggcorrplot", "igraph", "ggraph")
+invisible(lapply(packages, library, character.only = TRUE))
+
+```
+
+### Import data and set up a usable dataframe 
+```{r, results="hide", message=FALSE, warning=FALSE}
+# List out file names
+files <- list.files(path, pattern = "\\.csv$", full.names = TRUE)
+# list(files), check file names
+
+# Load in needed files listed above
+data_raw <- read.csv("/Users/parkermajor/Desktop/Cluster_Features/data_raw.csv" )
+cluster_data <- read.csv("/Users/parkermajor/Desktop/Cluster_Features/soft_cluster_probabilities_27_full.csv") %>% 
+  rename(filename = Filename)
+
+# Assign cluster label based on cluster percent that is highest for a given call, this is needed as we used a Gaussian Mixture-Model for clustering which provides soft labels 
+cluster_col <- grep("^Cluster_", names(cluster_data))
+cluster_names <- names(cluster_data)[cluster_col]
+
+# list(cluster_names), check that names are correct
+
+cluster_data$cluster_id <- cluster_names[
+  max.col(cluster_data[, cluster_col], ties.method = "first")
+]
+
+# The GMM clustering was very confident for most of the audio clips 
+max_probs <- apply(cluster_data[, cluster_col], 1, max)
+
+sum(max_probs < 0.9)
+# only 3,513 less than 90% confident
+sum(max_probs >= 0.9)
+# 88,894 more than90% confident
+
+rm("max_probs")
+
+# Add cluster_id to the data_raw df
+tmp <- cluster_data[, c("filename", "cluster_id")]
+
+
+# filename is in different orders in the two csv's, join by matching file_names 
+tmp1 <- left_join(tmp, data_raw, by = "filename")
+
+# Remove any audio clip that contains a 0 in any column, as this indicates something got messed up in the acoustic feature extraction 
+tmp1 <- tmp1[!apply(tmp1 == 0, 1, any), ]
+# n(before) = 92,407, n(after) = 87,747, # of removed rows = 4,660
+
+# Add peak count as a column 
+path <- "~/Desktop/Cluster_Features/Peak_counts"
+files <- list.files(path = path, pattern = "\\.csv", full.names = TRUE)
+# list(tmp_files_names), check file names
+
+peak_data <- files %>% 
+  map_dfr(read_csv) %>% 
+  rename(filename = File, peak_count = Gaussian_Peak_Count)
+
+tmp2 <- left_join(tmp1, peak_data, by = "filename")
+
+full_data_filtered <- tmp2 %>%
+  filter(if_all(all_of(names(select(., where(is.numeric), -peak_count))), ~ . != 0))
+
+# Save full_data_filtered as a csv 
+write.csv(full_data_filtered, file = file.path("~/Desktop/Cluster_Features", "full_data_filtered.csv"), row.names = FALSE)
+
+# Re-order species, makes figure creation easier downstream
+full_data_filtered$Species <- factor(full_data_filtered$Species, levels = c("CORA", "FICR", "AMCR", "CACR", "HCRW"))
+
+# Add a column to store cluster ID as a numeric value, for figure creation downstream
+full_data_filtered$cluster_id_num <- as.numeric(sub("Cluster_", "", full_data_filtered$cluster_id))
+
+# peak_count was added after filtering out zeros
+full_data_filtered %>% 
+  filter(peak_count == 0) %>% 
+  count()
+# 794 clips had a peak_count = 0, left in as it may indicate clips of silence with not vocalizations 
+
+# Remove tmp data to clean up global environment
+rm(list = c("tmp", "tmp1", "tmp2"))
+
+```
+
+## Initial Exploration / Analysis
+### Investigating call/species distribution among clusters
+```{r, message=FALSE, warning=FALSE}
+# Number of calls by cluster_id and Species
+n_calls <- full_data_filtered %>% 
+  group_by(Species, cluster_id_num) %>% 
+  summarise(count = n())
+
+ggplot(n_calls, mapping = aes(x = cluster_id_num, y = count, fill = Species)) +
+  coord_cartesian(xlim = c(0,26)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = 0:26) +
+  theme_classic() +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(title = "Distribution of Calls",
+       x = "Cluster ID",
+       y = "Count") + 
+  theme(
+    plot.title = element_text(size = 25, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 20, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    legend.title = element_text(size = 18, face = "bold"),
+    legend.text = element_text(size = 14)
+  )
+  
+# Save Figure 
+ggsave("~/Desktop/Corvus_Figures/Distribution_of_calls.png", plot = last_plot(), width = 15, height = 8, dpi = 300)
+
+# colnames(full_data_filtered), look at exact names of features 
+
+# Calculate summary stats for each feature by cluster 
+summary_df_full <- full_data_filtered %>%
+  select(cluster_id, mean_f0:peak_count) %>%
+  group_by(cluster_id) %>%
+  summarise(across(everything(), list(mean = mean, sd = sd), .names = "{.col}_{.fn}"))
+
+# Save summary dataframe as csv 
+write.csv(summary_df_full, file = file.path("~/Desktop/Cluster_Features", "summary_df_full.csv"), row.names = FALSE)
+
+```
+
+### Investigating and quantifying differences between clusters using acoustic features
+```{r, message=FALSE, warning=FALSE}
+# Create dataframe that only contains acoustic feature data
+features <- full_data_filtered %>%
+  select(where(is.numeric), -c(cluster_id_num))  
+
+# Standardize values with Z-scores 
+scaled_features <- scale(features)
+
+# Run MANOVA test to assess whether clusters vary in multivariate acoustic space 
+manova_results <- manova(scaled_features ~ factor(full_data_filtered$cluster_id))
+
+# View MANOVA results
+summary(manova_results)
+# significant effect of cluster ID detected 
+
+# ANOVA tests used to further investigate which features are significantly different between clusters 
+# Run ANVOA for each feature 
+anova_results <- lapply(names(features), function(feat) {
+  model <- aov(as.formula(paste0(feat, " ~ cluster_id")), data = full_data_filtered)
+  # extract ANOVA table for cluster_id tags it with feature name 
+  tidy_res <- tidy(model) %>%
+    filter(term == "cluster_id") %>%
+    mutate(feature = feat)
+  # calculates effect size 
+  effect_size <- eta_squared(model, partial = FALSE) %>%
+    filter(Parameter == "cluster_id") %>%
+    select(eta_squared = Eta2)
+  # combine above variables
+  cbind(tidy_res, effect_size)
+})
+
+# Create a dataframe to store ANOVA results, create an adjusted p-value using Benjamini-Hochberg correction
+anova_df <- bind_rows(anova_results) %>%
+  arrange(p.value) %>%
+  mutate(
+    p_adj = p.adjust(p.value, method = "BH"),
+    effect_size = case_when(
+      eta_squared >= 0.14 ~ "large (>0.14)",
+      eta_squared >= 0.058 ~ "moderate (0.06-0.14)",
+      eta_squared >= 0.01 ~ "small (0.01-0.06)",
+      TRUE ~ "trivial (<0.01)"
+    )
+  )
+
+# Create figure to display how effect sizes differ across acoustic features 
+ggplot(anova_df, aes(x = reorder(feature, eta_squared), y = eta_squared, fill = effect_size)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Effect Size (η²) of Acoustic Features by Cluster",
+       x = "Feature", y = "Eta Squared", fill = "Effect Size") +
+  scale_fill_manual(values = c(
+    "large (>0.14)" = "#D73027", 
+    "moderate (0.06-0.14)" = "#FC8D59", 
+    "small (0.01-0.06)" = "#91BFDB", 
+    "trivial (<0.01)" = "gray80")) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save figure 
+ggsave("~/Desktop/Corvus_Figures/Effect_Sizes.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+# See how features are correlated with eachother
+cor_matrix <- cor(features, use = "complete.obs")
+cor_matrix[abs(cor_matrix) < 0.5] <- NA
+
+ggcorrplot(cor_matrix,
+           type = "lower",
+           lab = TRUE,
+           lab_size = 4,
+           colors = c("purple3", "white", "forestgreen"),
+           ggtheme = ggplot2::theme_classic(),
+           tl.cex = 12,
+           tl.srt = 35,
+           outline.color = "gray") +
+  labs(title = "Correlation Matrix for Features") +
+  theme(
+    plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 6, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.text = element_text(size = 8, face = "bold")
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/Correlation_Matrix.png", plot = last_plot(), width = 14, height = 9, dpi = 300)
+
+rm("cor_matrix")
+
+```
+
+### Looking at peaks (NOT FINISHED)
+```{r, message=FALSE, warning=FALSE}
+total_per_cluster <- full_data_filtered %>%
+  count(cluster_id, name = "total_calls")
+
+peak_per_cluster <- full_data_filtered %>%
+  filter(peak_count == 5) %>%
+  count(cluster_id, name = "peak_calls")
+
+percent_peak <- total_per_cluster %>%
+  full_join(peak_per_cluster, by = "cluster_id") %>%
+  mutate(
+    total_calls = ifelse(is.na(total_calls), 0, total_calls),
+    peak_calls = ifelse(is.na(peak_calls), 0, peak_calls),
+    percent_peak = ifelse(total_calls == 0, 0, (peak_calls / total_calls) * 100)
+  ) %>%
+  arrange(cluster_id)
+
+full_data_filtered %>% count(peak_count)
+
+full_data_filtered %>%
+  ggplot(aes(x = peak_count)) +
+  geom_histogram(binwidth = 1, fill = "royalblue1", color = "black") +
+  theme_classic() +
+  labs(
+    title = "Histogram of Peak Count",
+    x = "Gaussian Peak Count",
+    y = "Number of Calls"
+  )
+
+```
+
+## Random Forest 
+### Create training and test dataframe
+```{r, message=FALSE, warning=FALSE}
+# Select features
+feature_names <- names(features)
+list(feature_names)
+
+# Prepare data (remove rows with NAs if any)
+tmp <- na.omit(full_data_filtered[, c(feature_names, "cluster_id")])
+
+# Create training (70%) and test (30%) indices
+train_index <- sample(seq_len(nrow(tmp)), size = 0.7 * nrow(tmp))
+
+# Create training and test sets
+train_data <- tmp[train_index, , drop = FALSE]
+test_data <- tmp[-train_index, , drop = FALSE]
+
+# Check that I am not testing on training data 
+intersect(train_index, -train_index)
+# integer(0), all is good
+
+# Check again in a different way
+tmp1 <- intersect(
+  apply(train_data, 1, paste, collapse = "|"),
+  apply(test_data, 1, paste, collapse = "|")
+)
+
+length(tmp1)
+# 0, all is good
+
+```
+
+### Using OOB error to find the optimum number of trees
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+
+# Fit Random Forest to predict cluster_id from all other variables
+train_data$cluster_id <- as.factor(train_data$cluster_id)
+rf_model_oob <- randomForest(
+  cluster_id ~ ., 
+  data = train_data,
+  importance = TRUE,
+  ntree = 500
+)
+
+# Extract OOB error rates and add tree index for plotting
+error_df <- as.data.frame(rf_model_oob$err.rate) %>%
+  mutate(Trees_n = seq_len(nrow(.)))
+
+# Reshape error data to long format for downstream figure
+error_df_long <- melt(
+  error_df, 
+  id.vars = "Trees_n", 
+  variable.name = "Error_Type", 
+  value.name = "Error_Rate"
+)
+
+# ---- 1-SE and 0.5-SE Rule Calculations ----
+oob_errors <- rf_model_oob$err.rate[, "OOB"]
+oob_sd <- sd(oob_errors)
+oob_min <- min(oob_errors)
+
+# 1-SE rule
+threshold_1se <- oob_min + oob_sd
+opt_trees_1se <- which(oob_errors <= threshold_1se)[1]
+
+# 0.5-SE rule
+threshold_half_se <- oob_min + 0.5 * oob_sd
+opt_trees_half_se <- which(oob_errors <= threshold_half_se)[1]
+
+# Show results
+cat("1-SE optimal number of trees:", opt_trees_1se, "\n")
+# optimal # of trees = 43
+cat("0.5-SE optimal number of trees:", opt_trees_half_se, "\n")
+# optimal # of trees = 72
+
+# Rename OOB to Overall for figure
+error_df_long$Error_Type <- ifelse(
+  error_df_long$Error_Type == "OOB", "Overall", error_df_long$Error_Type
+)
+
+# Set default gray color for all, black for Overall to make it stand out 
+color_values <- setNames(
+  rep("gray70", length(unique(error_df_long$Error_Type))),
+  unique(error_df_long$Error_Type)
+)
+color_values["Overall"] <- "black"
+
+# Create visual of  optimum number of trees
+ggplot(error_df_long, aes(x = Trees_n, y = Error_Rate, color = Error_Type)) +
+  coord_cartesian(xlim = c(0, 500)) +
+  geom_line(data = filter(error_df_long, Error_Type != "Overall"), size = 1.5) +
+  geom_line(data = filter(error_df_long, Error_Type == "Overall"), size = 2) +
+  geom_vline(xintercept = opt_trees_1se, linetype = "dashed", color = "black", size = 1) +
+  geom_vline(xintercept = opt_trees_half_se, linetype = "solid", color = "black", size = 1) +
+  scale_color_manual(values = color_values) +
+  labs(
+    title = "Determining Optimum Number of Trees",
+    x = "Number of Trees",
+    y = "OOB Error Rate",
+    color = "Species / Overall"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 32, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 28, face = "bold"),
+    axis.text = element_text(size = 24, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    legend.position = "none"
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/OOB_plot_clusters.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+```
+
+### Fit Random Forest using optimum number of trees (0.5 SE)
+```{r, message=FALSE, warning=FALSE}
+
+# Calculate class weights for random forest model 
+tmp <- table(full_data_filtered$cluster_id)
+weights <- 1 / tmp
+weights <- weights / sum(weights)
+
+# Fit Random Forest to predict cluster_id from all other variables, using optimum number of trees determined above (n = 72)
+train_data$cluster_id <- as.factor(train_data$cluster_id)
+set.seed(123)
+rf_model <- randomForest(
+  cluster_id ~ ., 
+  data = train_data, 
+  importance = TRUE, 
+  ntree = 72, 
+  classwt = weights
+)
+
+# Test model by predicting cluster_id of test data
+prediction_test <- predict(rf_model, test_data)
+
+# Confusion matrix on test data
+confusionMatrix(as.factor(prediction_test), as.factor(test_data$cluster_id))
+
+conf_mat_test <- table(Actual = test_data$cluster_id, Predicted = prediction_test)
+
+# Convert to data frame for ggplot
+conf_df_test <- melt(conf_mat_test)
+colnames(conf_df_test) <- c("Actual", "Predicted", "Count")
+
+# Normalize so percent is displayed instead of count 
+conf_df_test_norm <- conf_df_test %>%
+  group_by(Actual) %>%
+  mutate(Percent = Count / sum(Count) * 100) %>%
+  ungroup()
+
+# Plot heatmap
+ggplot(conf_df_test_norm, aes(x = Actual, y = Predicted, fill = Percent)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.1f%%", Percent)), color = "black", size = 2) +
+  scale_fill_gradient(low = "white", high = "royalblue1") +
+  theme_minimal() +
+  labs(title = "Normalized Random Forest Confusion Matrix (Test Set)",
+       x = "True Cluster",
+       y = "Predicted Cluster",
+       fill = "Percent (%)") +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 6, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/RdmForest_ConfusionMatrix_clusters.png", plot = last_plot(), width = 12, height = 9, dpi = 300, bg = "white")
+
+# Extract importance from random forest model
+importance_df <- as.data.frame(rf_model$importance) %>%
+  rownames_to_column(var = "feature") %>%
+  arrange(desc(MeanDecreaseAccuracy))
+
+# Plot only MeanDecreaseAccuracy
+ggplot(importance_df, aes(x = reorder(feature, MeanDecreaseAccuracy), y = MeanDecreaseAccuracy)) +
+  geom_col(fill = "royalblue1") +
+  coord_flip() +
+  labs(
+    title = "Random Forest Feature Importance",
+    x = "Feature",
+    y = "Mean Decrease Accuracy"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold")
+  )
+
+ggsave("~/Desktop/Corvus_Figures/Feature_Importance_RdmForest.png", plot = last_plot(), width = 12, height = 9, dpi = 300, bg = "white")
+
+# Test if recall can be explained by sample size differences between clusters
+recall_df <- conf_df_test_norm %>%
+  filter(Actual == Predicted) %>%
+  select(cluster_id = Actual, recall = Percent)
+
+cluster_performance <- full_data_filtered %>%
+  count(cluster_id, name = "n_samples") %>%
+  left_join(recall_df, by = "cluster_id")
+
+ggplot(cluster_performance, aes(x = n_samples, y = recall)) +
+  coord_cartesian(ylim = c(0, 100)) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "royalblue1", size = 2.5) +
+  labs(title = "Recall vs. Cluster Size",
+       x = "Number of Training Samples in Cluster",
+       y = "Recall (Sensitivity)") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold")
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/RecallxCluster_Size.png", plot = last_plot(), width = 12, height = 9, dpi = 300, bg = "white")
+
+cor(cluster_performance$n_samples, cluster_performance$recall, use = "complete.obs")
+# 0.451, not a strong relationship 
+
+```
+
+## Important Features Analysis
+### Rank features by importance for both effect size and random forest
+```{r, message=FALSE, warning=FALSE}
+# Identify most important features, combining effect size and Random Forest Importance
+importance_df <- anova_df %>%  
+  select(feature, eta_squared, p_adj, effect_size) %>%
+  inner_join(
+    importance_df %>% rename(rf_importance = MeanDecreaseAccuracy),
+    by = "feature"
+  )
+
+# Calculate combined rank of each feature
+importance_df <- importance_df %>%
+  mutate(
+    rank_eta = rank(-eta_squared),
+    rank_rdmforest = rank(-rf_importance),
+    combined_rank = rank_eta + rank_rdmforest
+  ) %>%
+  arrange(combined_rank)
+
+# Save importance dataframe as csv 
+write.csv(importance_df, file = file.path("~/Desktop/Cluster_Features", "importance_df.csv"), row.names = FALSE)
+
+```
+
+### Analyze important features & identify outlier clusters 
+```{r, message=FALSE, warning=FALSE}
+# Combine scaled features with cluster_id column from original data
+scaled_data <- full_data_filtered %>%
+  select(cluster_id) %>%            
+  bind_cols(as.data.frame(scaled_features)) 
+
+# Calculate cluster-wise mean z-scores for each feature
+cluster_zscore_means <- scaled_data %>%
+  group_by(cluster_id) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
+# Create a filtered dataframe which only includes the features that were in the top 12 (50%) for both metrics used to estimate "importance"
+top_features_scale_df <- importance_df %>% 
+  filter(rank_eta <= 12 & rank_rdmforest <= 12)
+
+top_features_scale_means_df <- cluster_zscore_means %>%
+  select(cluster_id, all_of(top_features_scale_df$feature)) %>%
+  mutate(
+    cluster_num = as.numeric(str_extract(cluster_id, "\\d+"))
+  ) %>%
+  arrange(cluster_num) %>%
+  mutate(
+    cluster_id = factor(cluster_id, levels = unique(cluster_id))
+  ) %>%
+  select(-cluster_num)
+
+# Create figure to easily identify outlier clusters for most important features
+tmp <- as.matrix(top_features_scale_means_df %>% column_to_rownames("cluster_id"))
+breaks <- seq(-max(abs(tmp), na.rm = TRUE), max(abs(tmp), na.rm = TRUE), length.out = 100)
+
+# Figure saved using plot window 'Export' button
+pheatmap(as.matrix(top_features_scale_means_df %>% column_to_rownames("cluster_id")),
+  cluster_rows = FALSE,    
+  cluster_cols = TRUE,     
+  color = colorRampPalette(c("purple3", "white", "forestgreen"))(100),
+  breaks = breaks,
+  main = "Mean Z-Scores by Cluster & Top Features",
+  fontsize = 12,            
+  fontsize_row = 12,        
+  fontsize_col = 10,       
+  border_color = "black", 
+  legend = TRUE,
+  angle_col = 0
+)
+
+```
+
+### Assessing similarity between clusters
+```{r, message=FALSE, warning=FALSE}
+# Reminder that feature_names vector was created above 
+feature_names <- feature_names
+
+# Create vector containing names of most important features, as determined before 
+top_feature_names <- setdiff(names(top_features_scale_means_df), "cluster_id")
+#list(top_feature_names), check for accuracy
+
+# Run a series of pairwise comparisons between clusters for each top feature 
+tukey_results_list <- purrr::map(top_feature_names, function(feat) {
+  fml <- as.formula(paste(paste0("`", feat, "`"), "~ cluster_id", collapse = " "))
+  model <- try(aov(fml, data = full_data_filtered), silent = TRUE)
+  if (inherits(model, "try-error")) return(NULL)
+  tukey <- try(TukeyHSD(model)$cluster_id, silent = TRUE)
+  if (inherits(tukey, "try-error")) return(NULL)
+  as.data.frame(tukey) %>%
+    tibble::rownames_to_column("comparison") %>%
+    tidyr::separate(comparison, into = c("group1", "group2"), sep = "-|\\s*-\\s*")
+})
+
+tmp <- purrr::compact(tukey_results_list)
+names(tmp) <- top_feature_names[seq_along(tmp)]
+
+# Create a data frame that contains the results from pairwise comparisons 
+tukey_all <- bind_rows(tmp, .id = "feature")
+
+# Count the number of non-significant differences (p >= 0.05) for each pair of clusters  
+non_sig_counts <- tukey_all %>%
+  filter(`p adj` >= 0.05) %>%
+  mutate(pair = purrr::map2_chr(group1, group2, ~ paste(sort(c(.x, .y)), collapse = "-"))) %>%
+  count(pair) %>%
+  tidyr::separate(pair, into = c("source", "target"), sep = "-", extra = "merge")
+
+# Count the number of significant differences (p < 0.05) for each pair of clusters
+sig_counts <- tukey_all %>%
+  filter(`p adj` < 0.05) %>%
+  mutate(pair = purrr::map2_chr(group1, group2, ~ paste(sort(c(.x, .y)), collapse = "-"))) %>%
+  count(pair) %>%
+  tidyr::separate(pair, into = c("source", "target"), sep = "-", extra = "merge")
+
+# Save above data frames as CSVs
+write.csv(non_sig_counts, "~/Desktop/nonsignificant_cluster_edges.csv", row.names = FALSE)
+write.csv(sig_counts, "~/Desktop/significant_cluster_edges.csv", row.names = FALSE)
+
+# -- Run same thing but for all features -- 
+
+# Run a series of pairwise comparisons between clusters for each top feature 
+tukey_results_list <- purrr::map(feature_names, function(feat) {
+  fml <- as.formula(paste(paste0("`", feat, "`"), "~ cluster_id", collapse = " "))
+  model <- try(aov(fml, data = full_data_filtered), silent = TRUE)
+  if (inherits(model, "try-error")) return(NULL)
+  tukey <- try(TukeyHSD(model)$cluster_id, silent = TRUE)
+  if (inherits(tukey, "try-error")) return(NULL)
+  as.data.frame(tukey) %>%
+    tibble::rownames_to_column("comparison") %>%
+    tidyr::separate(comparison, into = c("group1", "group2"), sep = "-|\\s*-\\s*")
+})
+
+tmp <- purrr::compact(tukey_results_list)
+names(tmp) <- top_feature_names[seq_along(tmp)]
+
+# Create a data frame that contains the results from pairwise comparisons 
+tukey_all <- bind_rows(tmp, .id = "feature")
+
+# Count the number of non-significant differences (p >= 0.05) for each pair of clusters  
+non_sig_counts <- tukey_all %>%
+  filter(`p adj` >= 0.05) %>%
+  mutate(pair = purrr::map2_chr(group1, group2, ~ paste(sort(c(.x, .y)), collapse = "-"))) %>%
+  count(pair) %>%
+  tidyr::separate(pair, into = c("source", "target"), sep = "-", extra = "merge")
+
+# Count the number of significant differences (p < 0.05) for each pair of clusters
+sig_counts <- tukey_all %>%
+  filter(`p adj` < 0.05) %>%
+  mutate(pair = purrr::map2_chr(group1, group2, ~ paste(sort(c(.x, .y)), collapse = "-"))) %>%
+  count(pair) %>%
+  tidyr::separate(pair, into = c("source", "target"), sep = "-", extra = "merge")
+
+# Save above data frames as CSVs
+write.csv(non_sig_counts, "~/Desktop/nonsignificant_cluster_edges_all.csv", row.names = FALSE)
+write.csv(sig_counts, "~/Desktop/significant_cluster_edges_all.csv", row.names = FALSE)
+
+# Load in edge data for top feature analysis and all feature analysis 
+edges_top <- read_csv("~/Desktop/nonsignificant_cluster_edges.csv") %>% 
+  rename(n_top = n)
+
+edges_all <- read.csv("~/Desktop/nonsignificant_cluster_edges_all.csv") %>% 
+  rename(n_all = n)
+
+# Merge together and set any NAs to 0
+edges <- full_join(edges_top, edges_all, by = c("source", "target"))
+edges[is.na(edges)] <- 0
+
+# Filter to only show cluster pairs that were not significantly different in 6+ of the top features, i.e cluster pairs that are the predicted to be the most similar
+edges_filtered <- edges %>% filter(n_top >= 6)
+
+# Create graph object
+g <- graph_from_data_frame(edges_filtered, directed = FALSE)
+
+# Plot network of non-significant relationships, connections indicate more similar clusters 
+ggraph(g, layout = "fr") + 
+  geom_edge_link(aes(width = n_top, color = n_all), alpha = 0.7) +
+  geom_node_point(size = 5, color = "royalblue1") +
+  geom_node_text(aes(label = name), 
+                 vjust = 1.8,
+                 size = 6,
+                 fontface = "bold") +
+  labs(title = "Non-Signifcant Pairwise Comparisons for Most Important Features (n_top = 6)") +
+  scale_edge_color_continuous(low = "grey", high = "grey10") +
+  theme_minimal() + 
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 14, face = "bold"),
+    axis.text.x = element_text(hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/Non-sig_Pair_Comparisons.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+# Figure showing clusters in order by # of significant differences
+sig_diff_counts <- tukey_all %>%
+  filter(`p adj` < 0.05) %>%
+  select(group1, group2) %>%
+  pivot_longer(cols = c(group1, group2), values_to = "cluster") %>%
+  count(cluster, name = "n_sig_diff") %>%
+  arrange(desc(n_sig_diff))
+
+ggplot(sig_diff_counts, aes(x = reorder(cluster, -n_sig_diff), y = n_sig_diff)) +
+  geom_bar(stat = "identity", fill = "royalblue1") +
+  labs(
+    title = "Number of Significant Differences by Cluster",
+    x = "Cluster",
+    y = "N (Significant Differences)"
+  ) +
+  theme_classic(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/#ofSigDiffs_by_Cluster.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+```

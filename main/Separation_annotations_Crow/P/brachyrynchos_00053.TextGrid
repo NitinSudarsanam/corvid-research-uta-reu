@@ -1,0 +1,64 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 1.944 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 1.944 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.3083936212572708 
+            text = "" 
+        intervals [2]:
+            xmin = 0.3083936212572708 
+            xmax = 1.4187077958073626 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 1.4187077958073626 
+            xmax = 1.944 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 1.944 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.944 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 1.944 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 1.944 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 1.944 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.8385901573215007 
+            text = "" 
+        intervals [2]:
+            xmin = 0.8385901573215007 
+            xmax = 1.8972618121250768 
+            text = "Other" 
+        intervals [3]:
+            xmin = 1.8972618121250768 
+            xmax = 1.944 
+            text = "" 

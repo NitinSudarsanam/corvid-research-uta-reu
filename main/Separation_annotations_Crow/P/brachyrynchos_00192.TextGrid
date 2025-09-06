@@ -1,0 +1,84 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 29.775986394557822 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 29.775986394557822 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 14.981888954124205 
+            text = "" 
+        intervals [2]:
+            xmin = 14.981888954124205 
+            xmax = 16.877263405188682 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 16.877263405188682 
+            xmax = 29.775986394557822 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 29.775986394557822 
+        intervals: size = 6 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.9145267183453399 
+            text = "" 
+        intervals [2]:
+            xmin = 0.9145267183453399 
+            xmax = 14.602814063911309 
+            text = "2+Crows" 
+        intervals [3]:
+            xmin = 14.602814063911309 
+            xmax = 18.151851277046166 
+            text = "" 
+        intervals [4]:
+            xmin = 18.151851277046166 
+            xmax = 22.603376400248877 
+            text = "2+Crows" 
+        intervals [5]:
+            xmin = 22.603376400248877 
+            xmax = 23.33041241446978 
+            text = "" 
+        intervals [6]:
+            xmin = 23.33041241446978 
+            xmax = 29.775986394557822 
+            text = "2+Crows" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 29.775986394557822 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 29.775986394557822 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 29.775986394557822 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.5526825049603032 
+            text = "" 
+        intervals [2]:
+            xmin = 0.5526825049603032 
+            xmax = 1.827752590221861 
+            text = "Other" 
+        intervals [3]:
+            xmin = 1.827752590221861 
+            xmax = 29.775986394557822 
+            text = "" 

@@ -1,0 +1,80 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 7.528 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 7.528 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.6250176232436294 
+            text = "" 
+        intervals [2]:
+            xmin = 0.6250176232436294 
+            xmax = 2.1527587997142175 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 2.1527587997142175 
+            xmax = 5.61027830435818 
+            text = "" 
+        intervals [4]:
+            xmin = 5.61027830435818 
+            xmax = 6.185500690640628 
+            text = "Crow" 
+        intervals [5]:
+            xmin = 6.185500690640628 
+            xmax = 7.528 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 7.528 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 7.528 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 7.528 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 7.528 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 7.528 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.006498928316265759 
+            text = "Other" 
+        intervals [2]:
+            xmin = 0.006498928316265759 
+            xmax = 0.5260546320552512 
+            text = "Other" 
+        intervals [3]:
+            xmin = 0.5260546320552512 
+            xmax = 6.197871064539175 
+            text = "" 
+        intervals [4]:
+            xmin = 6.197871064539175 
+            xmax = 7.51531588473446 
+            text = "Other" 
+        intervals [5]:
+            xmin = 7.51531588473446 
+            xmax = 7.528 
+            text = "" 

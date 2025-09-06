@@ -1,0 +1,88 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 11.004988662131518 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Tit" 
+        xmin = 0 
+        xmax = 11.004988662131518 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.5192991373793833 
+            text = "" 
+        intervals [2]:
+            xmin = 0.5192991373793833 
+            xmax = 1.403216284988047 
+            text = "Tit" 
+        intervals [3]:
+            xmin = 1.403216284988047 
+            xmax = 3.780375500700362 
+            text = "" 
+        intervals [4]:
+            xmin = 3.780375500700362 
+            xmax = 4.616520569142178 
+            text = "Tit" 
+        intervals [5]:
+            xmin = 4.616520569142178 
+            xmax = 9.406285849162346 
+            text = "" 
+        intervals [6]:
+            xmin = 9.406285849162346 
+            xmax = 10.22172954567632 
+            text = "Tit" 
+        intervals [7]:
+            xmin = 10.22172954567632 
+            xmax = 11.004988662131518 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Tits" 
+        xmin = 0 
+        xmax = 11.004988662131518 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 11.004988662131518 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 11.004988662131518 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 11.004988662131518 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 11.004988662131518 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.5194342664318166 
+            text = "" 
+        intervals [2]:
+            xmin = 0.5194342664318166 
+            xmax = 1.926722808615719 
+            text = "" 
+        intervals [3]:
+            xmin = 1.926722808615719 
+            xmax = 5.726303854875283 
+            text = "" 
+        intervals [4]:
+            xmin = 5.726303854875283 
+            xmax = 10.26397342994062 
+            text = "" 
+        intervals [5]:
+            xmin = 10.26397342994062 
+            xmax = 11.004988662131518 
+            text = "Other" 

@@ -1,0 +1,150 @@
+---
+title: "Audio_Quality_Crow"
+output: html_document
+date: "2025-06-13"
+---
+Author: Parker Major 
+
+Date: 06/13/2025, Revised: 06/14/2025
+
+Purpose: Conduct interobserver reliability tests and compare performance of various denoising models for cleaning publicly available audio data of the American crow (*Corvus brachyrhynchos*).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, results="hide", message=FALSE, warning=FALSE}
+#Clear global environment 
+rm(list = ls())
+
+#Load in required packages
+tmp <- c("tidyverse", "irr", "corrplot", "ggpubr", "ggsignif")
+invisible(lapply(tmp, library, character = TRUE))
+
+
+```
+
+### Import files and set up dataframe 
+```{r, results="hide"}
+
+#Establish path and load in csv files 
+path <- "/Users/parkermajor/Desktop/Audio_assessment"
+
+dataP <- read.csv(file.path(path, "Audio_quality_assessment_P.csv"))
+dataN <- read.csv(file.path(path, "Audio_quality_assessment_N.csv"))
+dataI2 <- read.csv(file.path(path, "Audio_quality_assessment_I2.csv"))
+dataS2 <- read.csv(file.path(path, "Audio_quality_assessment_S2.csv"))
+key <- read.csv(file.path(path, "key_crow.csv"))
+
+#Combine into a single dataframe
+All_scores <- Reduce(function(x, y) merge(x, y, by = "file", all = TRUE),
+                      list(dataP, dataN, dataI2, dataS2, key))
+
+#Rename treatment groups 
+All_scores <- All_scores %>% 
+  mutate(source_dir = recode(source_dir,
+                         "audiosep" = "AudioSep",
+                         "original" = "Raw",
+                         "biodenoised" = "Biodenoiser",
+                         "BirdClef" = "Noisereduce"))
+
+#Add column for avg score per audio clip
+All_scores$avg_score <- rowMeans(All_scores[, c("score_p", "score_n", "score_s", "score_i")], 
+                                 na.rm = TRUE)
+
+#Add column to indicate if audio was cleaned or raw 
+All_scores$Treatment <- ifelse(All_scores$source_dir == "Raw", "raw", "cleaned")
+
+```
+
+### Run statistical analysis to look for interobserver agreement/correlation as well as denoising treatment performance 
+```{r, results="hide"}
+#Avg rating across all videos for each scorer
+colMeans(All_scores[, c("score_p", "score_n", "score_s", "score_i")], na.rm = TRUE)
+#p = 2.400, n = 2.550, s = 2.305, i = 2.260
+
+#Create new dataframe with scores only, better for downstream analysis
+score_data <- All_scores[, c("score_p", "score_n", "score_s", "score_i")]
+
+#Creation of correlation matrix, used later for figure creation 
+cor_matrix <- cor(score_data, use = "complete.obs", method = "pearson")
+
+#Calculate ICC (Intraclass Correlation Coefficient)
+icc(score_data, 
+    model = "twoway", 
+    type = "consistency", 
+    unit = "average")
+#ICC(C,4) = 0.848, good reliability, CI(0.81, 0.88)
+
+#Calculate avg_score for each denoising treatment
+All_scores %>% 
+  group_by(source_dir) %>% 
+  summarize(avg_score_source_dir = mean(avg_score), na.rm = TRUE)
+#AudioSep = 2.40, Biodenoiser = 2.43, Noisereduce = 2.56, Raw = 2.13
+
+#Compare different denoising models with an ANOVA test
+anova <- aov(avg_score ~ source_dir, data = All_scores)
+summary(anova)
+#Pr(>F) = 0.032, significant difference detected 
+
+TukeyHSD(anova)
+#Significant difference for Noisereduce/Raw (p = 0.0206)
+
+#Used for figure creation downstream
+comparisons <- list(c("Raw", "Noisereduce"))
+
+```
+
+### Create figure for comparing scores of different denoising models
+```{r}
+#Correlation matrix for scorer's 
+corrplot(cor_matrix, method = "color", type = "lower",
+         title = "Correlation Matrix for 4 Assessors", 
+         mar = c(0, 0, 2, 0),
+         tl.col = "black", addCoef.col = "black", 
+         col = colorRampPalette(c("#2c728e", "white", "orchid4"))(200))
+
+#Barchart of average score for each denosing model 
+ggplot(All_scores, aes(x = source_dir, y = avg_score, fill = Treatment)) +
+  coord_cartesian(ylim = c(1, 5)) +
+  stat_summary(fun = mean, geom = "bar") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
+  scale_fill_manual(values = c("raw" = "grey", "cleaned" = "royalblue1")) +
+  theme(panel.background = element_rect(fill = "white")) +
+  stat_compare_means(method = "t.test",
+                     label = "p.signif",
+                     comparisons = comparisons,
+                     step.increase = 0.05,
+                     label.y = c(4)) +
+  labs(title = "Average Score for each Denoising Model",
+       x = "Denoising Model",
+       y = "Average Score") 
+
+#Boxplot of average score for each denosing model 
+ggplot(All_scores, aes(x = source_dir, y = avg_score, fill = Treatment)) +
+  coord_cartesian(ylim = c(1, 5.25)) +
+  geom_boxplot(outlier.size = 1.5, size = 1.5) +
+  scale_fill_manual(values = c("raw" = "grey", "cleaned" = "royalblue1")) +
+  theme(panel.background = element_rect(fill = "white")) +
+  theme_classic() +
+  geom_signif(
+    comparisons = comparisons,
+    map_signif_level = FALSE,
+    textsize = 8,          
+    size = 1.5,            
+    y_position = 4.75      
+  ) +
+  labs(title = "Performance of Denoising Models",
+       x = "Treament",
+       y = "Average Score") +
+   theme(
+    plot.title = element_text(size = 32, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 28, face = "bold"),
+    axis.text = element_text(size = 24, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    )
+
+ggsave("~/Desktop/Corvus_Figures/Denoising_Boxplot.png", plot = last_plot(), width = 14, height = 9, dpi = 300, bg = "white")
+```

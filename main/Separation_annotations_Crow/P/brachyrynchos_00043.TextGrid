@@ -1,0 +1,80 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 6.583 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 6.583 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.2865141338859322 
+            text = "" 
+        intervals [2]:
+            xmin = 0.2865141338859322 
+            xmax = 1.5164889500839311 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 1.5164889500839311 
+            xmax = 3.1565165601598237 
+            text = "" 
+        intervals [4]:
+            xmin = 3.1565165601598237 
+            xmax = 6.012453702118661 
+            text = "Crow" 
+        intervals [5]:
+            xmin = 6.012453702118661 
+            xmax = 6.583 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 6.583 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 6.583 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 6.583 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 6.583 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 6.583 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.4847091279652306 
+            text = "" 
+        intervals [2]:
+            xmin = 0.4847091279652306 
+            xmax = 0.7003919156397612 
+            text = "Other" 
+        intervals [3]:
+            xmin = 0.7003919156397612 
+            xmax = 4.087194608583066 
+            text = "" 
+        intervals [4]:
+            xmin = 4.087194608583066 
+            xmax = 4.2504140154718995 
+            text = "Other" 
+        intervals [5]:
+            xmin = 4.2504140154718995 
+            xmax = 6.583 
+            text = "" 

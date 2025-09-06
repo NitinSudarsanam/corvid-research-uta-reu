@@ -1,0 +1,110 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 18.168979591836734 
+tiers? <exists> 
+size = 5 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Tit" 
+        xmin = 0 
+        xmax = 18.168979591836734 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.7837222108632433 
+            text = "" 
+        intervals [2]:
+            xmin = 2.7837222108632433 
+            xmax = 5.531592589015276 
+            text = "Tit" 
+        intervals [3]:
+            xmin = 5.531592589015276 
+            xmax = 9.076837425240459 
+            text = "" 
+        intervals [4]:
+            xmin = 9.076837425240459 
+            xmax = 11.024144676900566 
+            text = "Tit" 
+        intervals [5]:
+            xmin = 11.024144676900566 
+            xmax = 18.168979591836734 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Tits" 
+        xmin = 0 
+        xmax = 18.168979591836734 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 18.168979591836734 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 18.168979591836734 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 18.168979591836734 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Silence" 
+        xmin = 0 
+        xmax = 18.168979591836734 
+        intervals: size = 5 
+        intervals [1]:
+            xmin = 0 
+            xmax = 5.56892854469723 
+            text = "" 
+        intervals [2]:
+            xmin = 5.56892854469723 
+            xmax = 6.255619914362505 
+            text = "Silence" 
+        intervals [3]:
+            xmin = 6.255619914362505 
+            xmax = 6.419828720152028 
+            text = "" 
+        intervals [4]:
+            xmin = 6.419828720152028 
+            xmax = 9.047169612784383 
+            text = "Silence" 
+        intervals [5]:
+            xmin = 9.047169612784383 
+            xmax = 18.168979591836734 
+            text = "" 
+    item [5]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 18.168979591836734 
+        intervals: size = 6 
+        intervals [1]:
+            xmin = 0 
+            xmax = 2.747522699768166 
+            text = "Other" 
+        intervals [2]:
+            xmin = 2.747522699768166 
+            xmax = 6.270547987616098 
+            text = "" 
+        intervals [3]:
+            xmin = 6.270547987616098 
+            xmax = 6.389972573644841 
+            text = "Other" 
+        intervals [4]:
+            xmin = 6.389972573644841 
+            xmax = 11.06245950201943 
+            text = "" 
+        intervals [5]:
+            xmin = 11.06245950201943 
+            xmax = 18.153294297476076 
+            text = "Other" 
+        intervals [6]:
+            xmin = 18.153294297476076 
+            xmax = 18.168979591836734 
+            text = "" 

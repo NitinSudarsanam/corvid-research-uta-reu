@@ -1,0 +1,96 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 17.52798185941043 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 17.52798185941043 
+        intervals: size = 11 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.20467305361034155 
+            text = "" 
+        intervals [2]:
+            xmin = 0.20467305361034155 
+            xmax = 0.49482169323883907 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 0.49482169323883907 
+            xmax = 6.710447240064653 
+            text = "" 
+        intervals [4]:
+            xmin = 6.710447240064653 
+            xmax = 8.007807897434366 
+            text = "Crow" 
+        intervals [5]:
+            xmin = 8.007807897434366 
+            xmax = 8.490962900868604 
+            text = "" 
+        intervals [6]:
+            xmin = 8.490962900868604 
+            xmax = 9.314115869682492 
+            text = "Crow" 
+        intervals [7]:
+            xmin = 9.314115869682492 
+            xmax = 13.675594454262173 
+            text = "" 
+        intervals [8]:
+            xmin = 13.675594454262173 
+            xmax = 14.635884608723977 
+            text = "Crow" 
+        intervals [9]:
+            xmin = 14.635884608723977 
+            xmax = 15.16159089766292 
+            text = "" 
+        intervals [10]:
+            xmin = 15.16159089766292 
+            xmax = 15.934963260501988 
+            text = "Crow" 
+        intervals [11]:
+            xmin = 15.934963260501988 
+            xmax = 17.52798185941043 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 17.52798185941043 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 17.52798185941043 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 17.52798185941043 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 17.52798185941043 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 17.52798185941043 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 6.316765385414533 
+            text = "" 
+        intervals [2]:
+            xmin = 6.316765385414533 
+            xmax = 6.474834614933142 
+            text = "Other" 
+        intervals [3]:
+            xmin = 6.474834614933142 
+            xmax = 17.52798185941043 
+            text = "" 

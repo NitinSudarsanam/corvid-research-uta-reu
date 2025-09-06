@@ -1,0 +1,76 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 12.277981859410431 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 12.277981859410431 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 4.335057189459424 
+            text = "" 
+        intervals [2]:
+            xmin = 4.335057189459424 
+            xmax = 5.339228406705235 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 5.339228406705235 
+            xmax = 12.277981859410431 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 12.277981859410431 
+        intervals: size = 6 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.15416822205862313 
+            text = "" 
+        intervals [2]:
+            xmin = 0.15416822205862313 
+            xmax = 0.8425623269629844 
+            text = "2+Crows" 
+        intervals [3]:
+            xmin = 0.8425623269629844 
+            xmax = 4.335057189459424 
+            text = "" 
+        intervals [4]:
+            xmin = 4.335057189459424 
+            xmax = 5.339228406705235 
+            text = "" 
+        intervals [5]:
+            xmin = 5.339228406705235 
+            xmax = 6.170764076014689 
+            text = "" 
+        intervals [6]:
+            xmin = 6.170764076014689 
+            xmax = 12.277981859410431 
+            text = "2+Crows" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 12.277981859410431 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 12.277981859410431 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 12.277981859410431 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 12.277981859410431 
+            text = "" 

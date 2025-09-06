@@ -1,0 +1,80 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 40.714 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 40.714 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 4.101550909605313 
+            text = "" 
+        intervals [2]:
+            xmin = 4.101550909605313 
+            xmax = 5.058646040228127 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 5.058646040228127 
+            xmax = 40.714 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 40.714 
+        intervals: size = 7 
+        intervals [1]:
+            xmin = 0 
+            xmax = 3.462180355496488 
+            text = "2+Crows" 
+        intervals [2]:
+            xmin = 3.462180355496488 
+            xmax = 5.756237263759962 
+            text = "" 
+        intervals [3]:
+            xmin = 5.756237263759962 
+            xmax = 19.50734606900857 
+            text = "2+Crows" 
+        intervals [4]:
+            xmin = 19.50734606900857 
+            xmax = 21.121413796201935 
+            text = "" 
+        intervals [5]:
+            xmin = 21.121413796201935 
+            xmax = 25.56459659946764 
+            text = "2+Crows" 
+        intervals [6]:
+            xmin = 25.56459659946764 
+            xmax = 28.631016280628245 
+            text = "" 
+        intervals [7]:
+            xmin = 28.631016280628245 
+            xmax = 40.714 
+            text = "2+Crows" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 40.714 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 40.714 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 40.714 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 40.714 
+            text = "" 

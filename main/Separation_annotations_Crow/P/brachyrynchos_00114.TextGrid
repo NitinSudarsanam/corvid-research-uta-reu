@@ -1,0 +1,104 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 55 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "Crow" 
+        xmin = 0 
+        xmax = 55 
+        intervals: size = 13 
+        intervals [1]:
+            xmin = 0 
+            xmax = 4.076286240386258 
+            text = "" 
+        intervals [2]:
+            xmin = 4.076286240386258 
+            xmax = 5.672826851894528 
+            text = "Crow" 
+        intervals [3]:
+            xmin = 5.672826851894528 
+            xmax = 9.531620768611806 
+            text = "" 
+        intervals [4]:
+            xmin = 9.531620768611806 
+            xmax = 12.377311690357983 
+            text = "Crow" 
+        intervals [5]:
+            xmin = 12.377311690357983 
+            xmax = 23.36679531015537 
+            text = "" 
+        intervals [6]:
+            xmin = 23.36679531015537 
+            xmax = 23.647159585100766 
+            text = "Crow" 
+        intervals [7]:
+            xmin = 23.647159585100766 
+            xmax = 24.137160737034602 
+            text = "" 
+        intervals [8]:
+            xmin = 24.137160737034602 
+            xmax = 24.247803429295683 
+            text = "Crow" 
+        intervals [9]:
+            xmin = 24.247803429295683 
+            xmax = 35.766284595347045 
+            text = "" 
+        intervals [10]:
+            xmin = 35.766284595347045 
+            xmax = 37.8156478233743 
+            text = "Crow" 
+        intervals [11]:
+            xmin = 37.8156478233743 
+            xmax = 51.0915862056201 
+            text = "" 
+        intervals [12]:
+            xmin = 51.0915862056201 
+            xmax = 53.18020350453427 
+            text = "Crow" 
+        intervals [13]:
+            xmin = 53.18020350453427 
+            xmax = 55 
+            text = "" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "2+Crows" 
+        xmin = 0 
+        xmax = 55 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 55 
+            text = "" 
+    item [3]:
+        class = "IntervalTier" 
+        name = "Speech" 
+        xmin = 0 
+        xmax = 55 
+        intervals: size = 1 
+        intervals [1]:
+            xmin = 0 
+            xmax = 55 
+            text = "" 
+    item [4]:
+        class = "IntervalTier" 
+        name = "Other" 
+        xmin = 0 
+        xmax = 55 
+        intervals: size = 3 
+        intervals [1]:
+            xmin = 0 
+            xmax = 37.8156478233743 
+            text = "" 
+        intervals [2]:
+            xmin = 37.8156478233743 
+            xmax = 39.71130880929951 
+            text = "Other" 
+        intervals [3]:
+            xmin = 39.71130880929951 
+            xmax = 55 
+            text = "" 

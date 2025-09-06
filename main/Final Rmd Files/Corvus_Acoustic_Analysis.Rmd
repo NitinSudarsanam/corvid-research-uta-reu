@@ -1,0 +1,673 @@
+---
+title: "Corvus_Acoustic_Analysis"
+author: "Parker Major"
+date: "2025-07-09"
+output: html_document
+---
+Author: Parker Major
+
+Date: 07/09/2025, Revised: 08/09/2025
+
+Purpose: Analysis of 5 select species of the *Corvus* genus using pre-defined acoustic features. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set Up
+### Set up working environment and load in required packages
+```{r, results="hide", message=FALSE, warning=FALSE}
+# Clear global environment
+rm(list = ls())
+
+# Set path
+path <- "~/Desktop/Corvus_Audio_Features"
+
+# Load in required packages 
+packages <- c("tidyverse", "reshape2", "caret", "randomForest", "broom", "effectsize", "pheatmap", "RColorBrewer")
+invisible(lapply(packages, library, character.only = TRUE))
+
+```
+
+## Import data and set up working data frame
+```{r, results="hide", message=FALSE, warning=FALSE}
+
+# Create a vector list of file names
+files <- list.files(path, pattern = "\\.csv$", full.names = TRUE)
+
+# Load in all files from list above, label each row with its file of origin (this will later represent the species label since each file contains the data from a single species)
+data <- files %>% 
+  set_names(nm = tools::file_path_sans_ext(basename(.))) %>% 
+  map_dfr(~ read_csv(.x), .id = "Species")
+
+# Check file names
+unique(data$Species)
+
+# Rename species labels to assign a 4-letter code for each species 
+data <- data %>% 
+  mutate(Species = recode(Species,
+                             "crow_features_mates_brachyrynchos_raw_2000" = "AMCR",
+                             "crow_features_mates_corax_raw_2000" = "CORA",
+                             "crow_features_mates_cornix_raw_2000" = "HCRW",
+                             "crow_features_mates_corone_raw_2000" = "CACR",
+                             "crow_features_mates_ossifragus_raw_2000" = "FICR"))
+
+# Save this data frame 
+write.csv(data, file = file.path("~/Desktop/Cluster_Features", "data_raw.csv"), row.names = FALSE)
+
+# Filter out any rows that contain a 0 for any acoustic feature 
+data_filtered <- data[!apply(data == 0, 1, any), ]
+# n(before) = 92,407, n(after) = 87,747
+
+# Re-order species labels to make later figure creation easier 
+data_filtered$Species <- factor(data_filtered$Species, levels = c("CORA", "FICR", "AMCR", "CACR", "HCRW"))
+
+# Add peak count as a column 
+path <- "~/Desktop/Cluster_Features/Peak_counts"
+files <- list.files(path = path, pattern = "\\.csv", full.names = TRUE)
+# list(tmp_files_names), check file names
+
+peak_data <- files %>% 
+  map_dfr(read_csv) %>% 
+  rename(filename = File, peak_count = Gaussian_Peak_Count)
+
+tmp <- left_join(data_filtered, peak_data, by = "filename")
+
+data_filtered <- tmp %>%
+  filter(if_all(all_of(names(select(., where(is.numeric), -peak_count))), ~ . != 0))
+
+# Add in a column to encode which larger clade each species belongs to
+data_filtered <- data_filtered %>% 
+  mutate(Clade = case_when(
+    Species %in% c("AMCR", "CACR", "HCRW") ~ "Clade VI",
+    Species %in% c("CORA") ~ "Clade V",
+    Species %in% c("FICR") ~ "Clade III"
+  ))
+
+# Save data frame as a CSV 
+write.csv(data_filtered, file = file.path("~/Desktop/Cluster_Features", "data_filtered.csv"), row.names = FALSE)
+
+```
+
+### Calculate summary statistics for each species
+```{r, message=FALSE, warning=FALSE}
+
+# Create a data frame to contain summary stats on call duration 
+call_stats <- data_filtered %>% 
+  group_by(Species) %>% 
+  summarise(count = n(),
+            avg_length = mean(call_length),
+            min_length = min(call_length),
+            max_length = max(call_length)
+            )
+
+# Add back in the clade information
+call_stats <- call_stats %>% 
+  mutate(Clade = case_when(
+    Species %in% c("AMCR", "CACR", "HCRW") ~ "Clade VI",
+    Species %in% c("CORA") ~ "Clade V",
+    Species %in% c("FICR") ~ "Clade III"
+  ))
+
+# Create figure for call distribution across species
+ggplot(call_stats, mapping = aes(x = Species, y = count, fill = Clade)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(title = "# of Calls per Species",
+       x = "Species",
+       y = "Count") +
+  theme(
+    plot.title = element_text(size = 32, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 28, face = "bold"),
+    axis.text = element_text(size = 24, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    legend.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 16, face = "bold")
+    )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/Call_Counts.png", plot = last_plot(), width = 15, height = 8, dpi = 300)
+
+# Create figure to show call length distribution across species
+ggplot(data_filtered, aes(x = Species, y = call_length, fill = Clade)) +
+  coord_cartesian() +
+  geom_boxplot(outlier.size = 1.5, size = 1.5) +
+  scale_y_continuous(
+    trans = "log2",
+    breaks = 2^(-1:10), 
+    labels = 2^(-1:10)) + 
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  theme(panel.background = element_rect(fill = "white")) +
+  theme_classic() +
+  labs(title = "Call Length Distributions",
+       x = "Species",
+       y = "Call Length (s)") +
+  theme(
+    plot.title = element_text(size = 32, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 28, face = "bold"),
+    axis.text = element_text(size = 24, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    legend.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 16, face = "bold")
+    )
+
+# Save Figure 
+ggsave("~/Desktop/Corvus_Figures/Call_length_dist.png", plot = last_plot(), width = 15, height = 8, dpi = 300)
+
+# Create data frame with summary stats for every feature by species
+summary_data <- data_filtered %>% 
+  select(Species, mean_f0:peak_count) %>%
+  group_by(Species) %>%
+  summarise(across(everything(), list(mean = mean, sd = sd), .names = "{.col}_{.fn}"))
+
+```
+
+### Running MANOVA test and looking at effect sizes of all features
+```{r, message=FALSE, warning=FALSE}
+# Create dataframe that only contains acoustic feature data
+features <- data_filtered %>%
+  select(where(is.numeric))  
+
+# Standardize values with Z-scores 
+scaled_features <- scale(features)
+
+# Run MANOVA test to assess whether spps vary in multivariate acoustic space 
+manova_results <- manova(scaled_features ~ factor(data_filtered$Species))
+
+# View MANOVA results
+summary(manova_results)
+# significant effect of Species detected 
+
+# ANOVA tests used to further investigate which features are significantly different between spps 
+# Run ANVOA for each feature 
+anova_results <- lapply(names(features), function(feat) {
+  model <- aov(as.formula(paste0(feat, " ~ Species")), data = data_filtered)
+  # extract ANOVA table for Species tags it with feature name 
+  tidy_res <- tidy(model) %>%
+    filter(term == "Species") %>%
+    mutate(feature = feat)
+  # calculates effect size 
+  effect_size <- eta_squared(model, partial = FALSE) %>%
+    filter(Parameter == "Species") %>%
+    select(eta_squared = Eta2)
+  # combine above variables
+  cbind(tidy_res, effect_size)
+})
+
+# Create a dataframe to store ANOVA results, create an adjusted p-value using Benjamini-Hochberg correction
+anova_df <- bind_rows(anova_results) %>%
+  arrange(p.value) %>%
+  mutate(
+    p_adj = p.adjust(p.value, method = "BH"),
+    effect_size = case_when(
+      eta_squared >= 0.14 ~ "large (>0.14)",
+      eta_squared >= 0.06 ~ "moderate (0.06-0.14)",
+      eta_squared >= 0.01 ~ "small (0.01-0.06)",
+      TRUE ~ "trivial (<0.01)"
+    )
+  )
+
+# Create figure to display how effect sizes differ across acoustic features 
+ggplot(anova_df, aes(x = reorder(feature, eta_squared), y = eta_squared, fill = effect_size)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Effect Size (η²) of Acoustic Features by Species",
+       x = "Feature", y = "Eta Squared", fill = "Effect Size") +
+  scale_fill_manual(values = c(
+    "large (>0.14)" = "#D73027", 
+    "moderate (0.06-0.14)" = "#FC8D59", 
+    "small (0.01-0.06)" = "#91BFDB", 
+    "trivial (<0.01)" = "gray80")) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save figure 
+ggsave("~/Desktop/Corvus_Figures/Effect_Sizes_spps.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+# Data frames to more easily assess which features were sigificant or not 
+sig_features <- filter(anova_df, p_adj < 0.05)
+nonsig_features <- filter(anova_df, p_adj >= 0.05)
+
+```
+
+### Check that known biological trends are preserved by our acoustic feature extraction methods
+```{r, message=FALSE, warning=FALSE}
+
+# Investigating mean_f0, should find CORA to be lowest due to having the largest body size on average
+# ANOVA focused on mean_f0, followed by TukeyHSD 
+anova <- aov(mean_f0 ~ Species, data = data_filtered)
+summary(anova)
+TukeyHSD(anova)
+# All signficant differences except for AMCR-FICR 
+
+# Graph showing the distribution mean_f0 for each species, also visualizing the large data deficit of the CACR and HCRW. Also note that median is always higher than the mean for each species, so will always be the higher point in the center of the violin plots. 
+ggplot(data_filtered, aes(x = Species, y = mean_f0, fill = Clade)) +
+  coord_cartesian() +
+  geom_jitter(alpha = 0.09) +
+  geom_violin(alpha = 0.6, color = "black") +
+  stat_summary(fun = "mean", 
+               geom = "point", 
+               aes(group = Species, fill = Clade),
+               size = 2,
+               shape = 21,
+               color = "black") +
+  stat_summary(fun = "median", 
+               geom = "point", 
+               aes(group = Species, fill = Clade),
+               size = 2,
+               shape = 21,
+               color = "black") +
+  labs(title = "Comparing Extracted Fundamental Frequency Measures for 5 Corvus Species",
+       y = "Fundamental Frequency (mean_f0)",
+       x = "Species") +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  theme_classic() + 
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 20, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+  
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/Mean_f0_spps.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+# Although AMCR-FICR do not differ significantly we can still see a large portion of FICR's data leans higher than AMCR as is expected from past literature
+
+# This, along with the finding that CORA is signficantly lower than all other species suggests that biological trends are preserved, depsite the abnormally high f0 values 
+
+# Simplier graph comparing mean_f0 between species
+ggplot(data_filtered, aes(x = Species, y = mean_f0, fill = Clade)) +
+  coord_cartesian(ylim = c(1000, 1400)) +
+  stat_summary(fun = "mean", 
+               geom = "point", 
+               aes(group = Species, color = Clade),
+               size = 3) +
+  stat_summary(fun.data = mean_cl_normal,
+             geom = "errorbar",
+             aes(group = Species, color = Clade),
+             width = 0.2) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  labs(title = "Mean Fundamental Frequency by Species",
+       y = "Fundamental Frequency (mean_f0)",
+       x = "Species") +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 20, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold"),
+    axis.text.x = element_text(hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/Mean_f0_spps_simple.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+# Calculate f0_range for each clip
+data_filtered$f0_range <- data_filtered$f0_95th_percentile - data_filtered$f0_5th_percentile
+
+# Create usable data frame containing only specific measures of interest 
+f0_long <- data_filtered %>%
+  select(Species, Clade, mean_f0, f0_95th_percentile, f0_5th_percentile, f0_range) %>%
+  pivot_longer(cols = c(mean_f0, f0_95th_percentile, f0_5th_percentile, f0_range),
+               names_to = "f0_Measure", values_to = "f0_Value") %>% 
+  mutate(f0_Measure = recode(f0_Measure,
+                             "f0_5th_percentile" = "F0 5th Percentile",
+                             "f0_95th_percentile" = "F0 95th Percentile",
+                             "f0_range" = "F0 Range (95th - 5th)",
+                             "mean_f0" = "Mean F0"
+                             ))
+
+# Create plot showing these measures
+ggplot(f0_long, aes(x = Species, y = f0_Value, fill = Clade)) +
+  geom_jitter(alpha = 0.1) +
+  geom_violin(alpha = 0.5) +
+  stat_summary(fun = "mean", 
+               geom = "point", 
+               aes(group = Species, fill = Clade),
+               size = 2,
+               shape = 21,
+               color = "black") +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_color_brewer(palette = "Dark2") +
+  facet_wrap(~ f0_Measure) +
+  theme_classic() +
+  labs(title = "Estimated F0 Measures",
+       x = "Species",
+       y = "Frequency (Hz)") +
+  theme(
+    plot.title = element_text(size = 30, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 24, face = "bold"),
+    axis.text = element_text(size = 20, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm"),
+    strip.text = element_text(size = 20, face = "bold"),
+    strip.background = element_blank()
+    )
+  
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/f0_measures.png", plot = last_plot(), width = 15, height = 8, dpi = 300)
+
+# Remove f0_range
+data_filtered$f0_range <- NULL
+
+```
+
+### Create training and test dataframes 
+```{r, results="hide", message=FALSE, warning=FALSE}
+# Select features
+feature_names <- names(features)
+list(feature_names)
+
+# Prepare data (remove rows with NAs if any)
+tmp <- na.omit(data_filtered[, c(feature_names, "Species")])
+
+# Create training (70%) and test (30%) indices
+train_index <- sample(seq_len(nrow(tmp)), size = 0.7 * nrow(tmp))
+
+# Create training and test sets
+train_data <- tmp[train_index, , drop = FALSE]
+test_data <- tmp[-train_index, , drop = FALSE]
+
+
+# Check that I am not testing on training data 
+intersect(train_index, -train_index)
+# integer(0), all is good
+
+# Check again in a different way
+tmp1 <- intersect(
+  apply(train_data, 1, paste, collapse = "|"),
+  apply(test_data, 1, paste, collapse = "|")
+)
+
+length(tmp1)
+# 0, all is good
+
+```
+
+### Determine Optimal # of Trees
+```{r, message=FALSE, warning=FALSE}
+set.seed(123)
+
+# Fit random forests for species 
+rf_model_oob <- randomForest(
+  Species ~ ., 
+  data = train_data,
+  importance = TRUE,
+  ntree = 500
+)
+
+# Extract OOB error rates and add tree index for plotting
+error_df <- as.data.frame(rf_model_oob$err.rate) %>%
+  mutate(Trees_n = seq_len(nrow(.)))
+
+# Preserve factor labels right after melt
+error_df_long <- melt(
+  error_df,
+  id.vars = "Trees_n",
+  variable.name = "Error_Type",
+  value.name = "Error_Rate"
+)
+
+# Convert Error_Type to character so we can rename
+error_df_long$Error_Type <- as.character(error_df_long$Error_Type)
+
+# Rename OOB to Overall
+error_df_long$Error_Type[error_df_long$Error_Type == "OOB"] <- "Overall"
+
+# Ensure factor ordering: Overall first, then species in original order
+error_df_long$Error_Type <- factor(
+  error_df_long$Error_Type,
+  levels = c("Overall", levels(train_data$Species))
+)
+
+# ---- 1-SE and 0.5-SE Rule Calculations ----
+oob_errors <- rf_model_oob$err.rate[, "OOB"]
+oob_sd <- sd(oob_errors)
+oob_min <- min(oob_errors)
+
+# 1-SE rule
+threshold_1se <- oob_min + oob_sd
+opt_trees_1se <- which(oob_errors <= threshold_1se)[1]
+
+# 0.5-SE rule
+threshold_half_se <- oob_min + 0.5 * oob_sd
+opt_trees_half_se <- which(oob_errors <= threshold_half_se)[1]
+
+# Show results
+cat("1-SE optimal number of trees:", opt_trees_1se, "\n")
+# optimal # of trees = 38
+cat("0.5-SE optimal number of trees:", opt_trees_half_se, "\n")
+# optimal # of trees = 61
+
+# Reshape error data
+error_df_long <- melt(
+  error_df,
+  id.vars = "Trees_n",
+  variable.name = "Error_Type",
+  value.name = "Error_Rate"
+)
+
+# Force Error_Type to character so ggplot treats it as discrete
+error_df_long$Error_Type <- as.character(error_df_long$Error_Type)
+
+# Rename OOB to Overall
+error_df_long$Error_Type[error_df_long$Error_Type == "OOB"] <- "Overall"
+
+# Make it a factor: Overall first, then the rest in original appearance order
+error_df_long$Error_Type <- factor(
+  error_df_long$Error_Type,
+  levels = c("Overall", setdiff(unique(error_df_long$Error_Type), "Overall"))
+)
+
+# Colors: black for Overall, Dark2 for the rest
+dark2_colors <- brewer.pal(n = length(levels(error_df_long$Error_Type)) - 1, name = "Dark2")
+color_values <- setNames(
+  c("black", dark2_colors),
+  levels(error_df_long$Error_Type)
+)
+
+# Plot
+ggplot(error_df_long, aes(x = Trees_n, y = Error_Rate, color = Error_Type)) +
+  coord_cartesian(xlim = c(0, 500)) +
+  geom_line(data = filter(error_df_long, Error_Type != "Overall"), size = 1.5) +
+  geom_line(data = filter(error_df_long, Error_Type == "Overall"), size = 2) +
+  geom_vline(xintercept = opt_trees_1se, linetype = "dashed", color = "black", size = 1) +
+  geom_vline(xintercept = opt_trees_half_se, linetype = "solid", color = "black", size = 1) +
+  scale_color_manual(values = color_values) +
+  labs(
+    title = "Determining Optimum Number of Trees",
+    x = "Number of Trees",
+    y = "OOB Error Rate",
+    color = "Species / Overall"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 32, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 28, face = "bold"),
+    axis.text = element_text(size = 24, face = "bold"),
+    axis.line = element_line(size = 1.5),
+    axis.ticks = element_line(size = 1.5),
+    axis.ticks.length = unit(0.3, "cm")
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/OOB_plot_species.png", plot = last_plot(), width = 15, height = 8, dpi = 300, bg = "white")
+
+# Clean environment
+rm(list = c("tmp", "tmp1", "tmp2"))
+
+```
+
+### Fit Random Forest using optimum number of trees (0.5 SE)
+```{r, message=FALSE, warning=FALSE}
+# Calculate class weights for random forest model 
+tmp <- table(data_filtered$Species)
+weights <- 1 / tmp
+weights <- weights / sum(weights)
+
+# Fit Random Forest to predict Speciesfrom all other variables, using optimum number of trees determined above (n = 72)
+train_data$Species <- as.factor(train_data$Species)
+set.seed(123)
+rf_model <- randomForest(
+  Species ~ ., 
+  data = train_data, 
+  importance = TRUE, 
+  ntree = 61, 
+  classwt = weights
+)
+
+# Test model by predicting Species of test data
+prediction_test <- predict(rf_model, test_data)
+
+# Confusion matrix on test data
+confusionMatrix(as.factor(prediction_test), as.factor(test_data$Species))
+
+conf_mat_test <- table(Actual = test_data$Species, Predicted = prediction_test)
+
+# Convert to data frame for ggplot
+conf_df_test <- melt(conf_mat_test)
+colnames(conf_df_test) <- c("Actual", "Predicted", "Count")
+
+# Normalize so percent is displayed instead of count 
+conf_df_test_norm <- conf_df_test %>%
+  group_by(Actual) %>%
+  mutate(Percent = Count / sum(Count) * 100) %>%
+  ungroup()
+
+# Plot heatmap
+ggplot(conf_df_test_norm, aes(x = Actual, y = Predicted, fill = Percent)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.1f%%", Percent)), color = "black", size = 2) +
+  scale_fill_gradient(low = "white", high = "royalblue1") +
+  theme_minimal() +
+  labs(title = "Normalized Random Forest Confusion Matrix (Test Set)",
+       x = "True Species",
+       y = "Predicted Species",
+       fill = "Percent (%)") +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 6, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 12)
+  )
+
+# Save Figure
+ggsave("~/Desktop/Corvus_Figures/RdmForest_ConfusionMatrix_spps.png", plot = last_plot(), width = 12, height = 9, dpi = 300, bg = "white")
+
+# Extract importance from random forest model
+importance_df <- as.data.frame(rf_model$importance) %>%
+  rownames_to_column(var = "feature") %>%
+  arrange(desc(MeanDecreaseAccuracy))
+
+# Plot only MeanDecreaseAccuracy
+ggplot(importance_df, aes(x = reorder(feature, MeanDecreaseAccuracy), y = MeanDecreaseAccuracy)) +
+  geom_col(fill = "royalblue1") +
+  coord_flip() +
+  labs(
+    title = "Random Forest Feature Importance",
+    x = "Feature",
+    y = "Mean Decrease Accuracy"
+  ) +
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 16, face = "bold"),
+    axis.text = element_text(size = 16, face = "bold")
+  )
+
+ggsave("~/Desktop/Corvus_Figures/Feature_Importance_RdmForest_spps.png", plot = last_plot(), width = 12, height = 9, dpi = 300, bg = "white")
+
+```
+
+## Important Features Analysis
+### Rank features by importance for both effect size and random forest
+```{r, results="hide", message=FALSE, warning=FALSE}
+# Identify most important features, combining effect size and Random Forest Importance
+importance_df <- anova_df %>%  
+  select(feature, eta_squared, p_adj, effect_size) %>%
+  inner_join(
+    importance_df %>% rename(rf_importance = MeanDecreaseAccuracy),
+    by = "feature"
+  )
+
+# Calculate combined rank of each feature
+importance_df <- importance_df %>%
+  mutate(
+    rank_eta = rank(-eta_squared),
+    rank_rdmforest = rank(-rf_importance),
+    combined_rank = rank_eta + rank_rdmforest
+  ) %>%
+  arrange(combined_rank)
+
+# Save importance dataframe as csv 
+write.csv(importance_df, file = file.path("~/Desktop/Cluster_Features", "importance_df_spps.csv"), row.names = FALSE)
+
+```
+
+### Analyze important features & identify how spps differ
+```{r, message=FALSE, warning=FALSE}
+
+# Combine scaled features with Species column from original data
+scaled_data <- data_filtered %>%
+  select(Species) %>%            
+  bind_cols(as.data.frame(scaled_features)) 
+
+# Calculate Species-wise mean z-scores for each feature
+spps_zscore_means <- scaled_data %>%
+  group_by(Species) %>%
+  summarise(across(where(is.numeric), mean, na.rm = TRUE))
+
+# Create a filtered data frame which only includes the features that were in the top 12 (50%) for both metrics used to estimate "importance"
+top_features_scale_df <- importance_df %>% 
+  filter(rank_eta <= 12 & rank_rdmforest <= 12)
+
+top_features_scale_means_df <- spps_zscore_means %>%
+  select(Species, all_of(top_features_scale_df$feature)) %>%
+  arrange(Species) %>%
+  mutate(
+  Species = factor(Species, levels = unique(Species))
+  )
+
+# Create figure to easily identify outlier spps for most important features
+tmp <- as.matrix(top_features_scale_means_df %>% column_to_rownames("Species"))
+breaks <- seq(-max(abs(tmp), na.rm = TRUE), max(abs(tmp), na.rm = TRUE), length.out = 100)
+
+# Figure saved using plot window 'Export' button
+pheatmap(as.matrix(top_features_scale_means_df %>% column_to_rownames("Species")),
+  cluster_rows = FALSE,    
+  cluster_cols = TRUE,     
+  color = colorRampPalette(c("purple3", "white", "forestgreen"))(100),
+  breaks = breaks,
+  main = "Mean Z-Scores by Species & Top Features",
+  fontsize = 12,            
+  fontsize_row = 12,        
+  fontsize_col = 10,       
+  border_color = "black", 
+  legend = TRUE,
+  angle_col = 0
+)
+
+```
+

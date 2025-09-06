@@ -1,0 +1,143 @@
+---
+title: "Audio_Separation_tit"
+output: html_document
+date: "2025-06-19"
+---
+Author: Parker Major 
+
+Date: 06/19/2025 Revised: 06/20/2025
+
+Purpose: Conduct interobserver reliability test for call unit annotation. Both annotators labeled the first 25 videos of the set with 4 possible labels ("Tit", "2+Tits", "Speech", "Other"), only Tit and 2+Tits are used for reliability testing. One annotator (S) included an additional label "Silence" which does not effect results.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+#Clear global environment
+rm(list = ls())
+
+#Load in required packages
+tmp <- c("readtextgrid", "tidyverse", "irr", "irrCAC", "ggplot2")
+invisible(lapply(tmp, library, character = TRUE))
+
+```
+
+### Set up usable data frame containing all .TextGrid information from both annotators 
+```{r, results="hide"}
+#Set path
+path <- "/Users/parkermajor/Desktop/Separation_annotations_tit"
+
+#Load in .TextGrid files contained within the folder denoted in path above 
+textgrid_files <- list.files(path = path, pattern = "\\.TextGrid$", full.names = TRUE, recursive = TRUE)
+
+#Create function that extracts the folder name (either N or P) within the path folder
+get_annotator <- function(file_path) {
+  parts <- str_split(file_path, "/")[[1]]
+  annotator <- parts[length(parts) - 1]
+  return(annotator)
+  }
+
+#Add annotator column to .TextGrid data 
+textgrids <- map(textgrid_files, function(file) {
+  annotator <- get_annotator(file)
+  read_textgrid(file) %>%
+    mutate(
+      file = basename(file),
+      annotator = annotator)})
+
+#Create combined data frame with data from both annotators 
+combined_data <- bind_rows(textgrids)
+
+#Filter out empty intervals (only keep those that contain a text label), rename columns to be more readable and remove unnecessary columns 
+cleaned_data <- combined_data %>% 
+  filter(text != "") %>% 
+  select(file, start_time = xmin, end_time = xmax, label = text, annotator)
+
+#Round all start and end times to two decimal points 
+rounded_data <- cleaned_data %>%
+  mutate(
+    start_time = round(start_time / 0.01) * 0.01,
+    end_time   = round(end_time / 0.01) * 0.01
+  )
+
+```
+
+### Conduct interobserver comparison test (Gwet's AC1)
+```{r, results="hide"}
+#Create function that sets up time points and the corresponding label given by each annotator in each time point
+time_point <- function(data, unit) {
+  data %>%
+    filter(!is.na(start_time), !is.na(end_time)) %>%
+    filter(end_time - start_time >= unit) %>% 
+    rowwise() %>%
+    mutate(time = list(seq(from = start_time, to = end_time - unit, by = unit))) %>%
+    unnest(cols = c(time)) %>%
+    mutate(time = round(time, 2)) %>%
+    select(file, annotator, time, label)
+}
+#New data frame sorted using function above
+comparison <- time_point(rounded_data, unit = 0.01)
+
+#Reorganize comparison data frame to more easily compare annotator labels in a given time point 
+comparison <- comparison %>%
+  group_by(file, time, annotator) %>%
+  slice(1) %>%
+  ungroup()
+
+#Filter to only keep time point in which at least 1 annotator had the label "Tit" or "2+Tits" 
+tmp_filter <- comparison %>%
+  filter(label %in% c("Tit", "2+Tits"))
+
+#Pivot to replace annotator column with two new columns, one for each annotator
+comparison_pivot <- tmp_filter %>%
+  pivot_wider(names_from = annotator, values_from = label) 
+
+#Rename NA's to "None" 
+comparison_pivot[is.na(comparison_pivot)] <- "None"
+
+#Remove file and time columns for ease of analysis 
+labels <- comparison_pivot %>% select(-file, -time)
+
+#Run Cohen's kappa 
+kappa2(labels, weight = "unweighted")
+#Kappa = 0.344, poor agreement, p = 0
+
+labels %>% count(I)
+#2+Tits   322 (3.34%)
+#None     719 (7.47%)
+#Tit     8587 (89.2%)
+#Total = 9628
+
+labels %>% count(S)
+#2+Tits   485 (5.04%)
+#None     432 (4.49%)
+#Tit     8711 (90.5%)
+#Total = 9628
+
+gwet.ac1.raw(labels)
+#AC1 = 0.877, p = 0, CI(0.87, 0.884)
+#Almost perfect agreement
+
+```
+
+### Create confusion matrix to display agreement results 
+```{r}
+conf_mat <- as.data.frame(table(labels[[1]], labels[[2]]))
+colnames(conf_mat) <- c("AnnotatorI", "AnnotatorS", "Count")
+
+order <- c("None", "Tit", "2+Tits")
+conf_mat$AnnotatorI <- factor(conf_mat$AnnotatorI, levels = order)
+conf_mat$AnnotatorS <- factor(conf_mat$AnnotatorS, levels = order)
+
+ggplot(conf_mat, aes(x = AnnotatorI, y = AnnotatorS, fill = sqrt(Count))) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Count), color = "black", size = 4) +
+  scale_fill_gradient(low = "white", high = "orchid4") +
+  labs(x = "Annotator I", y = "Annotator S", fill = "Count") +
+  guides(fill = "none") +
+  coord_fixed() +
+  theme_minimal()  +
+  labs(title = "Confusion Matrix (Count)")
+```
+
