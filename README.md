@@ -947,6 +947,7 @@ Research and educational use. Please cite if you use this code in your work.
 
 ## Acknowledgments
 
+- National Science Foundation REU Program
 - UTA REU Program
 - Pre-trained model authors (AudioMAE, PANNs, AVES teams)
 - Cornell Lab of Ornithology (Macaulay Library audio datasets)
