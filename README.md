@@ -175,12 +175,6 @@ The project implements multiple feature extraction approaches:
 - Output: 768-dimensional embeddings per window
 - Aggregation: Mean or attention pooling across windows
 
-**Why AudioMAE?**:
-- Captures temporal patterns and acoustic structure
-- Learns representations from unlabeled audio
-- Transfer learning from general audio domain
-- Robust to noise and variations
-
 ##### 2. **AVES (Avian Vocalization Encoder)**
 
 **File**: `aves_features.ipynb`
