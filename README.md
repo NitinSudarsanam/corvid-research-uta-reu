@@ -231,8 +231,6 @@ The project implements multiple feature extraction approaches:
 - Spectral moments (1st-4th)
 - Temporal envelope: attack, decay, sustain
 - Formant frequencies and bandwidths
-- Zero-crossing rate
-- Signal-to-noise ratio
 ```
 
 **Why MATES-Inspired Features are Best**:
